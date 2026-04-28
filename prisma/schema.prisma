@@ -1,0 +1,32 @@
+// Prisma schema for AI Bias Monitoring Dashboard
+// Using PostgreSQL for production-ready, scalable architecture
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String     @id @default(uuid())
+  name      String
+  apiKey    String     @unique
+  password  String     @default("admin123")
+  createdAt DateTime   @default(now())
+  decisions Decision[]
+}
+
+model Decision {
+  id        String   @id @default(uuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  gender    String   // "male" | "female"
+  decision  String   // "selected" | "rejected"
+  timestamp DateTime @default(now())
+
+  @@index([companyId])
+  @@index([timestamp])
+}
