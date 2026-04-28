@@ -35,20 +35,14 @@ interface BiasData {
 }
 
 type AppState = "auth" | "loading" | "dashboard" | "error" | "empty";
-type AuthView = "login" | "register" | "generated";
 
 export default function Home() {
   const [companyId, setCompanyId] = useState("");
   const [password, setPassword] = useState("");
   const [appState, setAppState] = useState<AppState>("auth");
-  const [authView, setAuthView] = useState<AuthView>("login");
   const [data, setData] = useState<BiasData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [companyNameInput, setCompanyNameInput] = useState("");
-  const [registering, setRegistering] = useState(false);
-  const [generatedKey, setGeneratedKey] = useState("");
-  const [copied, setCopied] = useState(false);
 
   // Load API key from localStorage on mount
   useEffect(() => {
@@ -91,44 +85,6 @@ export default function Home() {
     }
   }, []);
 
-  // Register new company
-  const handleRegister = async () => {
-    if (!companyNameInput.trim()) return;
-    setRegistering(true);
-    try {
-      const res = await fetch("/api/setup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: companyNameInput.trim() }),
-      });
-
-      const responseData = await res.json();
-      if (!res.ok) throw new Error(responseData.error || "Failed to register");
-
-      setGeneratedKey(responseData.api_key);
-      setAuthView("generated");
-    } catch (err: any) {
-      setErrorMessage(err.message || "Registration failed");
-      setAppState("error");
-    } finally {
-      setRegistering(false);
-    }
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedKey);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleUseGeneratedKey = async () => {
-    const key = generatedKey;
-    setInputKey(key);
-    setApiKey(key);
-    localStorage.setItem("bias_monitor_api_key", key);
-    setAppState("loading");
-    await fetchResults(key);
-  };
 
   // Connect with API key
   const handleConnect = async () => {
@@ -173,7 +129,6 @@ export default function Home() {
     setPassword("");
     setData(null);
     setAppState("auth");
-    setAuthView("login");
   };
 
   // Polling every 3 seconds
